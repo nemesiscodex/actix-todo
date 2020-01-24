@@ -1,14 +1,16 @@
-#[macro_use]
-extern crate actix_web;
-extern crate actix_rt;
-
-use actix_web::{Responder, HttpServer, App};
+use actix_web::{Responder, HttpServer, App, web, get};
+use serde::Serialize;
 use std::io::Result;
 
+#[derive(Serialize)]
+struct Status {
+    status: String
+}
 
 #[get("/")]
 async fn hello() -> impl Responder {
-    format!("Hello World!")
+    web::HttpResponse::Ok()
+        .json(Status {status: "Up".to_string()})
 }
 
 
