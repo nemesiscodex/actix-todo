@@ -1,54 +1,40 @@
+mod handlers;
 mod models;
+mod config;
 mod db;
 
-use actix_web::{Responder, HttpServer, App, web, get, Error};
-use actix::Addr;
+use actix_web::{HttpServer, App, web, middleware};
 use std::io;
-use serde::Serialize;
-use crate::db::{PgConnection, GetTodoLists, GetTodoList};
+use dotenv::dotenv;
+use tokio_postgres::NoTls;
+use crate::handlers::*;
 
-#[derive(Serialize)]
-struct Status {
-    status: String
-}
-
-#[get("/")]
-async fn status() -> impl Responder {
-    web::HttpResponse::Ok()
-        .json(Status {status: "Up".to_string()})
-}
-
-async fn todos(db: web::Data<Addr<PgConnection>>) -> Result<web::HttpResponse, Error> {
-    let res = db.send(GetTodoLists).await?;
-
-    match res {
-        Ok(lists) => Ok(web::HttpResponse::Ok().json(lists)),
-        Err(_) => Ok(web::HttpResponse::InternalServerError().into())
-    }
-}
-
-async fn todo(db: web::Data<Addr<PgConnection>>, id: web::Path<(i32,)>) -> Result<web::HttpResponse, Error> {
-    let res = db.send(GetTodoList{id:id.0}).await?;
-
-    match res {
-        Ok(lists) => Ok(web::HttpResponse::Ok().json(lists)),
-        Err(_) => Ok(web::HttpResponse::InternalServerError().into())
-    }
-}
 
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
-    println!("Starting server at http://127.0.0.1:8080");
-    
-    const DB_URL: &str = "postgres://actix:actix@localhost:5432/actix";
+    dotenv().ok();
 
-    HttpServer::new(|| App::new()
-        .data_factory(|| PgConnection::connect(DB_URL)) 
-        .service(status)
-        .service(web::resource("/todos").to(todos))
-        .service(web::resource("/todos/{id}").to(todo))
+    let config = crate::config::Config::from_env().unwrap();
+
+    let pool = config.pg.create_pool(NoTls).unwrap();
+
+    println!("Starting server at http://{}:{}", config.server.host, config.server.port);
+    
+    HttpServer::new(move || {
+        App::new()
+        .data(pool.clone())
+        .wrap(middleware::NormalizePath)
+        .route("/", web::get().to(status))
+        .route("/todos{_:/?}", web::get().to(todos))
+        .route("/todos{_:/?}", web::post().to(create_todo))
+        .route("/todos/{list_id}{_:/?}", web::get().to(get_todo))
+        .route("/todos/{list_id}/items{_:/?}", web::get().to(items))
+        .route("/todos/{list_id}/items{_:/?}", web::post().to(create_item))
+        .route("/todos/{list_id}/items/{item_id}{_:/?}", web::get().to(get_item))
+        .route("/todos/{list_id}/items/{item_id}{_:/?}", web::put().to(check_todo))
+    }
     )
-    .bind("127.0.0.1:8080")?
+    .bind(format!("{}:{}", config.server.host, config.server.port))?
     .run()
     .await
 }
