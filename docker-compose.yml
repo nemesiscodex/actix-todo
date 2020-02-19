@@ -7,5 +7,31 @@ services:
       POSTGRES_PASSWORD: actix
       POSTGRES_USER: actix
       POSTGRES_DB: actix
-    ports: 
+    ports:
       - 5432:5432
+    deploy:
+      resources:
+        limits:
+          memory: '512M'
+          cpus: '1'
+  todo-actix:
+    build: .
+    links:
+      - postgres
+    environment:
+      SERVER.HOST: 0.0.0.0
+      SERVER.PORT: 8080
+      PG.USER: actix
+      PG.PASSWORD: actix
+      PG.HOST: postgres
+      PG.PORT: 5432
+      PG.DBNAME: actix
+      PG.POOL.MAX_SIZE: 30
+    deploy:
+      resources:
+        limits:
+          memory: '1G'
+          cpus: '2'
+    ports:
+      - 8080:8080
+

@@ -8,12 +8,11 @@ edition = "2018"
 
 [dependencies]
 actix-rt = "1.0.0"
-actix-web = { version = "2.0.0", features = ["openssl"] }
-openssl = { version = "0.10", features = ["v110"] }
-dotenv = "0.15.0"
+actix-web = "2.0.0"
 serde = { version = "1.0.104", features = ["derive"] }
+dotenv = "0.15.0"
+config = "0.10.1"
 tokio-pg-mapper = "0.1.4"
 tokio-pg-mapper-derive = "0.1.4"
-config = "0.10.1"
 deadpool-postgres = "0.5.0"
 tokio-postgres = "0.5.1"

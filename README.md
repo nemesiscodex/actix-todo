@@ -8,7 +8,7 @@ Simple TODO list API made in rust
 
 ## Usage
 ```
-docker-compose up -d
+docker-compose up -d postgres
 cargo run --release
 ```
 ```
