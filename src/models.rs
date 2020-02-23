@@ -1,5 +1,12 @@
 use serde::{Serialize, Deserialize};
 use tokio_pg_mapper_derive::PostgresMapper;
+use deadpool_postgres::Pool;
+use slog;
+
+pub struct AppState {
+    pub db_pool: Pool,
+    pub log: slog::Logger
+}
 
 #[derive(Serialize)]
 pub struct Status {
@@ -22,12 +29,12 @@ pub struct TodoList {
     pub title: String
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct CreateTodoList {
     pub title: String
 }
 
-#[derive(Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct CreateTodoItem {
     pub title: String
 }

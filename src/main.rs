@@ -9,7 +9,20 @@ use std::io;
 use dotenv::dotenv;
 use tokio_postgres::NoTls;
 use crate::handlers::*;
+use slog_term;
+use slog_async;
+use slog::{Logger, o, info, Drain};
+use crate::models::AppState;
 
+
+fn configure_log() -> Logger {
+    let decorator = slog_term::TermDecorator::new().build();
+    let console_drain = slog_term::FullFormat::new(decorator).build().fuse();
+    let console_drain = slog_async::Async::new(console_drain).build().fuse();
+    let _log = slog::Logger::root(console_drain, o!("v" => env!("CARGO_PKG_VERSION")));
+
+    _log
+}
 
 #[actix_rt::main]
 async fn main() -> io::Result<()> {
@@ -19,12 +32,15 @@ async fn main() -> io::Result<()> {
 
     let pool = config.pg.create_pool(NoTls).unwrap();
 
-    println!("Starting server at http://{}:{}", config.server.host, config.server.port);
-    
+    let log = configure_log();
+
+    info!(log, "Starting server at http://{}:{}", config.server.host, config.server.port);
+
     HttpServer::new(move || {
+
         App::new()
-        .data(pool.clone())
-        .wrap(middleware::NormalizePath)
+        .data(AppState { db_pool: pool.clone(), log: log.clone() })
+        .wrap(middleware::Logger::default())
         .route("/", web::get().to(status))
         .route("/todos{_:/?}", web::get().to(todos))
         .route("/todos{_:/?}", web::post().to(create_todo))
