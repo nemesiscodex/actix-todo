@@ -9,6 +9,7 @@ Simple TODO list API made in rust
 ## Usage
 ```
 docker-compose up -d postgres
+psql -h 127.0.0.1 -p 5432 -U actix actix < database.sql # pass is actix
 cargo run --release
 ```
 ```
