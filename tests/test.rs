@@ -8,18 +8,19 @@ use actix_todo::models::{AppState, TodoList};
 use actix_todo::handlers::todos;
 use tokio_postgres::NoTls;
 use slog::{info};
+use std::env;
 
 fn setup () -> AppState {
 
     dotenv().ok();
 
+    let log = Config::configure_log();
+
+    info!(log, "Server host: {:?}", env::var("SERVER.HOST").unwrap());
+
     let config = Config::from_env().unwrap();
 
     let pool = config.pg.create_pool(NoTls).unwrap();
-
-    let log = Config::configure_log();
-
-    info!(log, "{:?}", config.pg);
 
     AppState {
         pool: pool.clone(),

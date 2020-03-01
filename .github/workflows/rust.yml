@@ -25,19 +25,18 @@ jobs:
     - uses: actions/checkout@v2
     - name: Move cache
       run: mv /cache/target .
-    - name: Run migrations
+    - name: Run migrations and test
       run: diesel migration run 
       env:
         DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
-    - name: Setup tests
-      run: |
-        echo "SERVER.HOST: 0.0.0.0" > .env
-        echo "SERVER.PORT: 8080" >> .env
-        echo "PG.USER: postgres" >> .env
-        echo "PG.PASSWORD: postgres" >> .env
-        echo "PG.HOST: postgres" >> .env
-        echo "PG.PORT: 5432" >> .env
-        echo "PG.DBNAME: postgres" >> .env
-        echo "PG.POOL.MAX_SIZE: 30" >> .env
     - name: Run tests
       run: cargo test --verbose
+      env:
+        SERVER.HOST: 0.0.0.0
+        SERVER.PORT: 8080
+        PG.USER: postgres
+        PG.PASSWORD: postgres
+        PG.HOST: postgres
+        PG.PORT: 5432
+        PG.DBNAME: postgres
+        PG.POOL.MAX_SIZE: 30
