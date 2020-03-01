@@ -4,7 +4,7 @@ use deadpool_postgres::Pool;
 use slog;
 
 pub struct AppState {
-    pub db_pool: Pool,
+    pub pool: Pool,
     pub log: slog::Logger
 }
 
@@ -22,7 +22,7 @@ pub struct TodoItem {
     pub checked: bool
 }
 
-#[derive(Serialize, Deserialize, PostgresMapper)]
+#[derive(Debug, Serialize, Deserialize, PostgresMapper)]
 #[pg_mapper(table = "todo_list")]
 pub struct TodoList {
     pub id: i32,

@@ -32,7 +32,7 @@ pub async fn todos(state: web::Data<AppState>) -> Result<impl Responder, AppErro
 
     let sublog = state.log.new(o!("handler" => "create_todo"));
 
-    let client: Client = get_client(state.db_pool.clone(), sublog.clone()).await?;
+    let client: Client = get_client(state.pool.clone(), sublog.clone()).await?;
 
     let result = db::get_todos(&client).await;
 
@@ -47,7 +47,7 @@ pub async fn create_todo(todo_list: web::Json<CreateTodoList>, state: web::Data<
         "todo_list" => todo_list.title.clone()
     ));
 
-    let client: Client = get_client(state.db_pool.clone(), sublog.clone()).await?;
+    let client: Client = get_client(state.pool.clone(), sublog.clone()).await?;
 
     let result = db::create_todo(&client, todo_list.title.clone()).await;
 
@@ -62,7 +62,7 @@ pub async fn get_todo(list_id: web::Path<(i32,)>, state: web::Data<AppState>) ->
         "list_id" => list_id.0
     ));
 
-    let client: Client = get_client(state.db_pool.clone(), sublog.clone()).await?;
+    let client: Client = get_client(state.pool.clone(), sublog.clone()).await?;
 
     let result = db::get_todo(&client, list_id.0).await;
 
@@ -78,7 +78,7 @@ pub async fn create_item(list_id: web::Path<(i32,)>, todo_item: web::Json<Create
         "todo_item" => todo_item.title.clone()
     ));
 
-    let client: Client = get_client(state.db_pool.clone(), sublog.clone()).await?;
+    let client: Client = get_client(state.pool.clone(), sublog.clone()).await?;
 
     let result = db::create_item(&client, list_id.0, todo_item.title.clone()).await;
 
@@ -93,7 +93,7 @@ pub async fn items(list_id: web::Path<(i32,)>, state: web::Data<AppState>) -> Re
         "list_id" => list_id.0
     ));
 
-    let client: Client =get_client(state.db_pool.clone(), sublog.clone()).await?;
+    let client: Client =get_client(state.pool.clone(), sublog.clone()).await?;
 
     let result = db::get_items(&client, list_id.0).await;
 
@@ -110,7 +110,7 @@ pub async fn get_item(params: web::Path<(i32,i32)>, state: web::Data<AppState>) 
         "item_id" => params.1,
     ));
 
-    let client: Client = get_client(state.db_pool.clone(), sublog.clone()).await?;
+    let client: Client = get_client(state.pool.clone(), sublog.clone()).await?;
 
     let result = db::get_item(&client, params.0, params.1).await;
 
@@ -128,7 +128,7 @@ pub async fn check_todo(params: web::Path<(i32,i32)>, state: web::Data<AppState>
         "item_id" => params.1,
     ));
 
-    let client: Client = get_client(state.db_pool.clone(), sublog.clone()).await?;
+    let client: Client = get_client(state.pool.clone(), sublog.clone()).await?;
 
     let result = db::check_todo(&client, params.0, params.1).await;
 
