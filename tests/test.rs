@@ -19,6 +19,8 @@ fn setup () -> AppState {
 
     let log = Config::configure_log();
 
+    info!(log, "{:?}", config.pg);
+
     AppState {
         pool: pool.clone(),
         log: log.clone()
@@ -35,14 +37,14 @@ async fn test_get_todos() {
 
     let app = App::new()
         .data(state)
-        .route("/", web::get().to(todos));
+        .route("/todos", web::get().to(todos));
 
     let mut app = test::init_service(app).await;
 
-    let req = test::TestRequest::get().uri("/").to_request();
+    let req = test::TestRequest::get().uri("/todos").to_request();
 
     let todos: Vec<TodoList> = test::read_response_json(&mut app, req).await;
 
-    info!(log, "{:?}", todos);
+    info!(log, "GET /todos -> {:?}", todos);
 
 }
