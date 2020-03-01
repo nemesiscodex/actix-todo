@@ -30,7 +30,7 @@ jobs:
       env:
         DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
     - name: Run tests
-      run: cargo test --verbose
+      run: env && cargo test --verbose
       env:
         SERVER.HOST: 0.0.0.0
         SERVER.PORT: 8080
