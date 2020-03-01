@@ -6,7 +6,7 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
+    container: nemesiscodex/actix-todo-cache
     services:
       postgres:
         image: postgres:10.8
