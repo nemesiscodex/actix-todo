@@ -10,7 +10,7 @@ jobs:
       image: nemesiscodex/actix-todo-cache
     services:
       postgres:
-        image: postgres:10.8
+        image: postgres:10.12-alpine
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
