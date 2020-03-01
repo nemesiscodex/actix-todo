@@ -6,7 +6,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    container: nemesiscodex/actix-todo-cache
+    container: 
+      image: nemesiscodex/actix-todo-cache
     services:
       postgres:
         image: postgres:10.8
@@ -16,20 +17,20 @@ jobs:
           POSTGRES_DB: postgres
         ports:
         # will assign a random free host port
-        - 5432/tcp
+        - 5432:5432
         # needed because the postgres container does not provide a healthcheck
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
     - uses: actions/checkout@v2
+    - name: Move cache
+      run: mv /cache/target .
     - name: Build
       run: cargo build --verbose
-    - name: Install diesel
-      run: cargo install diesel_cli --no-default-features --features postgres
     - name: Run migrations
       run: diesel migration run
       env:
-        DATABASE_URL: postgres://postgres:postgres@postgres:${{ job.services.postgres.ports[5432] }}/postgres
+        DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
     - name: Run tests
       run: cargo test --verbose
       env:
@@ -38,6 +39,6 @@ jobs:
         PG.USER: postgres
         PG.PASSWORD: postgres
         PG.HOST: postgres
-        PG.PORT: ${{ job.services.postgres.ports[5432] }}
+        PG.PORT: 5432
         PG.DBNAME: postgres
         PG.POOL.MAX_SIZE: 30
