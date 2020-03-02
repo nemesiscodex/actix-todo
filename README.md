@@ -8,9 +8,26 @@ Simple TODO list API made in rust
 
 ## Usage
 ```
+# Copy example .env file
+cp .env.example .env
+
+# Run postgres
 docker-compose up -d postgres
-psql -h 127.0.0.1 -p 5432 -U actix actix < database.sql # pass is actix
-cargo run --release
+
+# Install diesel
+cargo install diesel_cli --no-default-features --features postgres
+
+# Run db migrations
+DATABASE_URL=postgres://actix:actix@localhost:5432/actix diesel migration run
+
+# Run unit tests
+cargo test
+
+# Run integration tests
+cargo test --features "integration"
+
+# Run the server (Add --release for an optimized build)
+cargo run 
 ```
 ```
 curl -s http://localhost:8080/

@@ -53,3 +53,46 @@ impl ResponseError for AppError {
             .json(AppErrorResponse { error: self.message() })
     }
 }
+
+#[cfg(test)]
+mod tests {
+
+    use super::{AppError, AppErrorType};
+    use actix_web::{error::ResponseError};
+
+    #[test]
+    fn test_default_db_error() {
+        let db_error = AppError { message: None, cause: None, error_type: AppErrorType::DbError };
+
+        assert_eq!(db_error.message(), "An unexpected error has occurred".to_string(), "Default message should be shown");
+
+    }
+
+    #[test]
+    fn test_default_not_found_error() {
+        let db_error = AppError { message: None, cause: None, error_type: AppErrorType::NotFoundError };
+
+        assert_eq!(db_error.message(), "The requested item was not found".to_string(), "Default message should be shown");
+
+    }
+
+    #[test]
+    fn test_user_db_error() {
+        let user_message = "User-facing message".to_string();
+
+        let db_error = AppError { message: Some(user_message.clone()), cause: None, error_type: AppErrorType::DbError };
+
+        assert_eq!(db_error.message(), user_message, "User-facing message should be shown");
+
+    }
+
+    #[test]
+    fn test_db_error_status_code() {
+        let expected = 500;
+
+        let db_error = AppError { message: None, cause: None, error_type: AppErrorType::DbError };
+
+        assert_eq!(db_error.status_code(), expected, "Status code for DbError should be {}", expected);
+    }
+
+}
