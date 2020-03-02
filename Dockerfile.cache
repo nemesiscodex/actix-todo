@@ -4,4 +4,4 @@ RUN apt-get update -qq && apt-get install -y libpq-dev && rm -rf /var/lib/apt/li
 RUN cargo install diesel_cli --no-default-features --features postgres
 RUN USER=root cargo init --bin --vcs none
 COPY Cargo.lock Cargo.toml /cache/
-RUN cargo build && rm src/*.rs && rm ./target/debug/deps/actix_todo*
+RUN cargo build --features "integration" && rm src/*.rs && rm ./target/debug/deps/actix_todo*
