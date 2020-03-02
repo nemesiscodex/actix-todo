@@ -30,4 +30,6 @@ jobs:
       env:
         DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
     - name: Run tests
-      run: mv .env.github .env && cargo test --verbose
+      run: mv .env.github .env && cargo test --features "integration" --verbose
+      env:
+        RUST_LOG: info
