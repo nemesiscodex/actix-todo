@@ -1,20 +1,20 @@
-use serde::Deserialize;
 pub use config::ConfigError;
-use slog_term;
+use serde::Deserialize;
+use slog::{o, Drain, Logger};
 use slog_async;
 use slog_envlogger;
-use slog::{Logger, o, Drain};
+use slog_term;
 
 #[derive(Deserialize)]
 pub struct ServerConfig {
     pub host: String,
-    pub port: i32
+    pub port: i32,
 }
 
 #[derive(Deserialize)]
 pub struct Config {
     pub server: ServerConfig,
-    pub pg: deadpool_postgres::Config
+    pub pg: deadpool_postgres::Config,
 }
 
 impl Config {
@@ -29,8 +29,6 @@ impl Config {
         let console_drain = slog_term::FullFormat::new(decorator).build().fuse();
         let console_drain = slog_envlogger::new(console_drain);
         let console_drain = slog_async::Async::new(console_drain).build().fuse();
-        let _log = slog::Logger::root(console_drain, o!("v" => env!("CARGO_PKG_VERSION")));
-    
-        _log
+        slog::Logger::root(console_drain, o!("v" => env!("CARGO_PKG_VERSION")))
     }
 }
