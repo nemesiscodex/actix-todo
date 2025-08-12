@@ -13,23 +13,23 @@ integration = []
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-actix-rt = "1.0.0"
-actix-web = "2.0.0"
-actix-http = "1.0.1"
-actix-service = "1.0.5"
-futures = "0.3.4"
-serde = { version = "1.0.104", features = ["derive"] }
+actix-rt = "2.10.0"
+actix-web = "4.11.0"
+actix-http = "3.11.0"
+actix-service = "2.0.3"
+futures = "0.3.31"
+serde = { version = "1.0.219", features = ["derive"] }
 dotenv = "0.15.0"
-config = "0.10.1"
-tokio-pg-mapper = "0.1.4"
-tokio-pg-mapper-derive = "0.1.4"
-deadpool-postgres = "0.5.0"
-tokio-postgres = "0.5.1"
-slog = "2.5.2"
-slog-term = "2.5.0"
-slog-async = "2.4.0"
+config = "0.15.14"
+tokio-pg-mapper = "0.2.0"
+tokio-pg-mapper-derive = "0.2.0"
+deadpool-postgres = { version = "0.14.1", features = ["serde"] }
+tokio-postgres = "0.7.13"
+slog = "2.7.0"
+slog-term = "2.9.1"
+slog-async = "2.8.0"
 slog-envlogger = "2.2.0"
 
 [dev-dependencies]
-lazy_static = "1.4.0"
-serde_json = "1.0.48"
+lazy_static = "1.5.0"
+serde_json = "1.0.142"

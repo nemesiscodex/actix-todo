@@ -18,7 +18,10 @@ lazy_static! {
 
         let config = Config::from_env().unwrap();
 
-        let pool = config.pg.create_pool(NoTls).unwrap();
+        let pool = config
+            .pg
+            .create_pool(Some(deadpool_postgres::Runtime::Tokio1), NoTls)
+            .unwrap();
 
         models::AppState {
             pool: pool.clone(),
@@ -29,8 +32,9 @@ lazy_static! {
 
 #[actix_rt::test]
 async fn test_get_todos() {
+    let app_state = web::Data::new(APP_STATE.clone());
     let app = App::new()
-        .data(APP_STATE.clone())
+        .app_data(app_state)
         .route("/todos{_:/?}", web::get().to(handlers::todos));
 
     let mut app = test::init_service(app).await;
@@ -51,8 +55,9 @@ async fn test_get_todos() {
 
 #[actix_rt::test]
 async fn test_create_todos() {
+    let app_state = web::Data::new(APP_STATE.clone());
     let app = App::new()
-        .data(APP_STATE.clone())
+        .app_data(app_state)
         .route("/todos{_:/?}", web::get().to(handlers::todos))
         .route("/todos{_:/?}", web::post().to(handlers::create_todo));
 
@@ -64,7 +69,7 @@ async fn test_create_todos() {
 
     let req = test::TestRequest::post()
         .uri("/todos/")
-        .header("Content-Type", "application/json")
+        .insert_header(("Content-Type", "application/json"))
         .set_payload(create_todo_list.to_string())
         .to_request();
 
@@ -83,7 +88,7 @@ async fn test_create_todos() {
 
     let req = test::TestRequest::get().uri("/todos/").to_request();
 
-    let todos: Vec<models::TodoList> = test::read_response_json(&mut app, req).await;
+    let todos: Vec<models::TodoList> = test::call_and_read_body_json(&mut app, req).await;
 
     let maybe_list = todos.iter().find(|todo| todo.id == created_list.id);
 

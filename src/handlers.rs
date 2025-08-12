@@ -24,7 +24,7 @@ fn log_error(log: Logger) -> impl Fn(AppError) -> AppError {
     }
 }
 pub async fn status() -> Result<impl Responder, AppError> {
-    Ok(web::HttpResponse::Ok().json(Status {
+    Ok(HttpResponse::Ok().json(Status {
         status: "Up".to_string(),
     }))
 }

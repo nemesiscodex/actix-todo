@@ -5,23 +5,35 @@ use slog_async;
 use slog_envlogger;
 use slog_term;
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Clone)]
 pub struct ServerConfig {
     pub host: String,
     pub port: i32,
 }
 
-#[derive(Deserialize)]
+impl Default for ServerConfig {
+    fn default() -> Self {
+        ServerConfig {
+            host: "127.0.0.1".to_string(),
+            port: 8080,
+        }
+    }
+}
+
+#[derive(Deserialize, Clone)]
 pub struct Config {
+    #[serde(default)]
     pub server: ServerConfig,
+    #[serde(default)]
     pub pg: deadpool_postgres::Config,
 }
 
 impl Config {
     pub fn from_env() -> Result<Self, ConfigError> {
-        let mut cfg = config::Config::new();
-        cfg.merge(config::Environment::new())?;
-        cfg.try_into()
+        let cfg = config::Config::builder()
+            .add_source(config::Environment::default().separator("."))
+            .build()?;
+        cfg.try_deserialize()
     }
 
     pub fn configure_log() -> Logger {

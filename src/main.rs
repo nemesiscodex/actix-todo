@@ -19,21 +19,28 @@ async fn main() -> io::Result<()> {
 
     let config = Config::from_env().unwrap();
 
-    let pool = config.pg.create_pool(NoTls).unwrap();
+    let pool = config
+        .pg
+        .create_pool(Some(deadpool_postgres::Runtime::Tokio1), NoTls)
+        .unwrap();
 
     let log = Config::configure_log();
 
     info!(
         log,
-        "Starting server at http://{}:{}", config.server.host, config.server.port
+        "Starting server at http://{}:{}",
+        config.server.host,
+        config.server.port
     );
 
     HttpServer::new(move || {
+        let state = web::Data::new(AppState {
+            pool: pool.clone(),
+            log: log.clone(),
+        });
+
         App::new()
-            .data(AppState {
-                pool: pool.clone(),
-                log: log.clone(),
-            })
+            .app_data(state.clone())
             .wrap(middleware::Logger::default())
             .route("/", web::get().to(status))
             .route("/todos{_:/?}", web::get().to(todos))
