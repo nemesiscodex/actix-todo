@@ -5,7 +5,7 @@ on: [push]
 jobs:
   build:
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:10.12-alpine
@@ -21,22 +21,25 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    
+
     - name: Install Rust 1.87
       uses: actions-rs/toolchain@v1
       with:
         toolchain: 1.87
         override: true
-        
+
     - name: Install diesel_cli
       run: cargo install diesel_cli --no-default-features --features postgres
-      
-    - name: Run migrations
-      run: diesel migration run 
       env:
         DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
-        
+
+    - name: Run migrations
+      run: diesel migration run
+      env:
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+
     - name: Run tests
       run: mv .env.github .env && cargo test --features "integration" --verbose
       env:
         RUST_LOG: info
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
