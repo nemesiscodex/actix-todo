@@ -4,10 +4,8 @@ on: [push]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
-    container: 
-      image: nemesiscodex/actix-todo-cache
+    
     services:
       postgres:
         image: postgres:10.12-alpine
@@ -22,13 +20,22 @@ jobs:
         options: --health-cmd pg_isready --health-interval 10s --health-timeout 5s --health-retries 5
 
     steps:
-    - uses: actions/checkout@v2
-    - name: Move cache
-      run: mv /cache/target .
+    - uses: actions/checkout@v4
+    
+    - name: Install Rust 1.87
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: 1.87
+        override: true
+        
+    - name: Install diesel_cli
+      run: cargo install diesel_cli --no-default-features --features postgres
+      
     - name: Run migrations
       run: diesel migration run 
       env:
-        DATABASE_URL: postgres://postgres:postgres@postgres:5432/postgres
+        DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+        
     - name: Run tests
       run: mv .env.github .env && cargo test --features "integration" --verbose
       env:
