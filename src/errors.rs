@@ -1,15 +1,19 @@
+// File: src/errors.rs
+// High-level: Application error types and how they translate to HTTP responses.
 use actix_web::{error::ResponseError, http::StatusCode, HttpResponse};
 use serde::Serialize;
 use std::fmt;
 use deadpool_postgres::PoolError;
 use tokio_postgres::error::Error;
 
+// Coarse-grained error categories to decouple DB/internal errors from HTTP mapping.
 #[derive(Debug)]
 pub enum AppErrorType {
     DbError,
     NotFoundError,
 }
 
+// Carries optional user-facing message and internal cause for logging.
 #[derive(Debug)]
 pub struct AppError {
     pub message: Option<String>,
@@ -18,6 +22,7 @@ pub struct AppError {
 }
 
 impl AppError {
+    // Prefer a user-provided message; otherwise return a safe default per error type.
     pub fn message(&self) -> String {
         match &*self {
             AppError {
@@ -34,6 +39,7 @@ impl AppError {
     }
 }
 
+// Convert pool errors into AppError so handlers can use `?` succinctly.
 impl From<PoolError> for AppError {
     fn from(error: PoolError) -> AppError {
         AppError {
@@ -44,6 +50,7 @@ impl From<PoolError> for AppError {
     }
 }
 
+// Convert tokio_postgres errors similarly.
 impl From<Error> for AppError {
     fn from(error: Error) -> AppError {
         AppError {

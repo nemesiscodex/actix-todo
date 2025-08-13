@@ -1,4 +1,3 @@
-version: "3.1"
 services:
   postgres:
     image: postgres:11-alpine
@@ -9,6 +8,14 @@ services:
       POSTGRES_DB: actix
     ports:
       - 5432:5432
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U actix -d actix"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     deploy:
       resources:
         limits:
@@ -16,8 +23,9 @@ services:
           cpus: '1'
   todo-actix:
     build: .
-    links:
-      - postgres
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       SERVER.HOST: 0.0.0.0
       SERVER.PORT: 8080
@@ -27,6 +35,8 @@ services:
       PG.PORT: 5432
       PG.DBNAME: actix
       PG.POOL.MAX_SIZE: 30
+    networks:
+      - app-network
     deploy:
       resources:
         limits:
@@ -34,4 +44,14 @@ services:
           cpus: '2'
     ports:
       - 8080:8080
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
+# Add this networks section at the bottom
+networks:
+  app-network:
+    driver: bridge

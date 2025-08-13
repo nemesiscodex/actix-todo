@@ -1,3 +1,5 @@
+// File: src/config.rs
+// High-level: Centralizes app configuration and logging setup. Keeps runtime behavior driven by environment.
 pub use config::ConfigError;
 use serde::Deserialize;
 use slog::{o, Drain, Logger};
@@ -30,6 +32,7 @@ pub struct Config {
 
 impl Config {
     pub fn from_env() -> Result<Self, ConfigError> {
+        // Flatten environment variables (e.g., SERVER__PORT -> server.port)
         let cfg = config::Config::builder()
             .add_source(config::Environment::default().separator("."))
             .build()?;
@@ -37,6 +40,7 @@ impl Config {
     }
 
     pub fn configure_log() -> Logger {
+        // Configure slog to log to the terminal, respecting RUST_LOG via slog_envlogger
         let decorator = slog_term::TermDecorator::new().build();
         let console_drain = slog_term::FullFormat::new(decorator).build().fuse();
         let console_drain = slog_envlogger::new(console_drain);

@@ -1,8 +1,11 @@
+// File: src/db.rs
+// High-level: Data-access layer. Each function encapsulates a single SQL statement and maps rows to typed models.
 use crate::errors::{AppError, AppErrorType::*};
 use crate::models::{TodoItem, TodoList};
 use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 
+// Insert a new todo list and return the created row for immediate client feedback.
 pub async fn create_todo(client: &Client, title: &str) -> Result<TodoList, AppError> {
     let statement = client
         .prepare("insert into todo_list (title) values ($1) returning id, title")
@@ -22,6 +25,7 @@ pub async fn create_todo(client: &Client, title: &str) -> Result<TodoList, AppEr
         })
 }
 
+// Fetch all todo lists ordered by newest first to surface recent lists.
 pub async fn get_todos(client: &Client) -> Result<Vec<TodoList>, AppError> {
     let statement = client
         .prepare("select * from todo_list order by id desc")
@@ -37,6 +41,7 @@ pub async fn get_todos(client: &Client) -> Result<Vec<TodoList>, AppError> {
     Ok(todos)
 }
 
+// Fetch a single todo list by id or return a 404-style domain error.
 pub async fn get_todo(client: &Client, list_id: i32) -> Result<TodoList, AppError> {
     let statement = client
         .prepare("select * from todo_list where id = $1")
@@ -57,6 +62,7 @@ pub async fn get_todo(client: &Client, list_id: i32) -> Result<TodoList, AppErro
     }
 }
 
+// Insert a new item in the specified list and return the created row.
 pub async fn create_item(
     client: &Client,
     list_id: i32,
@@ -80,6 +86,7 @@ pub async fn create_item(
         })
 }
 
+// List items for a list so the client can render them.
 pub async fn get_items(client: &Client, list_id: i32) -> Result<Vec<TodoItem>, AppError> {
     let statement = client
         .prepare("select * from todo_item where list_id = $1 order by id")
@@ -95,6 +102,7 @@ pub async fn get_items(client: &Client, list_id: i32) -> Result<Vec<TodoItem>, A
     Ok(items)
 }
 
+// Fetch a specific item or return a not-found domain error.
 pub async fn get_item(client: &Client, list_id: i32, item_id: i32) -> Result<TodoItem, AppError> {
     let statement = client
         .prepare("select * from todo_item where list_id = $1 and id = $2")
@@ -118,6 +126,7 @@ pub async fn get_item(client: &Client, list_id: i32, item_id: i32) -> Result<Tod
     }
 }
 
+// Mark an item as checked; returns whether an update occurred to enable idempotent behavior.
 pub async fn check_todo(client: &Client, list_id: i32, item_id: i32) -> Result<bool, AppError> {
     let statement = client
         .prepare("update todo_item set checked = true where list_id = $1 and id = $2 and checked = false")
