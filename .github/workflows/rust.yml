@@ -6,6 +6,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      RUST_LOG: info
+
     services:
       postgres:
         image: postgres:10.12-alpine
@@ -30,16 +34,9 @@ jobs:
 
     - name: Install diesel_cli
       run: cargo install diesel_cli --no-default-features --features postgres
-      env:
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
 
     - name: Run migrations
       run: diesel migration run
-      env:
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
 
     - name: Run tests
       run: mv .env.github .env && cargo test --features "integration" --verbose
-      env:
-        RUST_LOG: info
-        DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
