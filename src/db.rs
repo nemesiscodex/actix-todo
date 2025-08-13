@@ -3,7 +3,7 @@ use crate::models::{TodoItem, TodoList};
 use deadpool_postgres::Client;
 use tokio_pg_mapper::FromTokioPostgresRow;
 
-pub async fn create_todo(client: &Client, title: String) -> Result<TodoList, AppError> {
+pub async fn create_todo(client: &Client, title: &str) -> Result<TodoList, AppError> {
     let statement = client
         .prepare("insert into todo_list (title) values ($1) returning id, title")
         .await?;
@@ -60,7 +60,7 @@ pub async fn get_todo(client: &Client, list_id: i32) -> Result<TodoList, AppErro
 pub async fn create_item(
     client: &Client,
     list_id: i32,
-    title: String,
+    title: &str,
 ) -> Result<TodoItem, AppError> {
     let statement = client
         .prepare("insert into todo_item (list_id, title) values ($1, $2) returning id, list_id, title, checked")

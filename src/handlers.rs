@@ -6,7 +6,7 @@ use actix_web::{web, HttpResponse, Responder};
 use deadpool_postgres::{Client, Pool, PoolError};
 use slog::{crit, error, o, Logger};
 
-async fn get_client(pool: Pool, log: Logger) -> Result<Client, AppError> {
+async fn get_client(pool: &Pool, log: &Logger) -> Result<Client, AppError> {
     pool.get().await.map_err(|err: PoolError| {
         let sublog = log.new(o!("cause" => err.to_string()));
         crit!(sublog, "Error creating client");
@@ -32,7 +32,7 @@ pub async fn status() -> Result<impl Responder, AppError> {
 pub async fn todos(state: web::Data<AppState>) -> Result<impl Responder, AppError> {
     let sublog = state.log.new(o!("handler" => "create_todo"));
 
-    let client: Client = get_client(state.pool.clone(), sublog.clone()).await?;
+    let client: Client = get_client(&state.pool, &sublog).await?;
 
     let result = db::get_todos(&client).await;
 
@@ -45,14 +45,15 @@ pub async fn create_todo(
     todo_list: web::Json<CreateTodoList>,
     state: web::Data<AppState>,
 ) -> Result<impl Responder, AppError> {
-    let sublog = state.log.new(o!(
-        "handler" => "create_todo",
-        "todo_list" => todo_list.title.clone()
-    ));
+    let title = todo_list.into_inner().title;
+    let sublog = state
+        .log
+        .new(o!("handler" => "create_todo", "todo_list" => title.clone()))
+        ;
 
-    let client: Client = get_client(state.pool.clone(), sublog.clone()).await?;
+    let client: Client = get_client(&state.pool, &sublog).await?;
 
-    let result = db::create_todo(&client, todo_list.title.clone()).await;
+    let result = db::create_todo(&client, &title).await;
 
     result
         .map(|todo| HttpResponse::Ok().json(todo))
@@ -68,7 +69,7 @@ pub async fn get_todo(
         "list_id" => list_id.0
     ));
 
-    let client: Client = get_client(state.pool.clone(), sublog.clone()).await?;
+    let client: Client = get_client(&state.pool, &sublog).await?;
 
     let result = db::get_todo(&client, list_id.0).await;
 
@@ -81,15 +82,14 @@ pub async fn create_item(
     todo_item: web::Json<CreateTodoItem>,
     state: web::Data<AppState>,
 ) -> Result<impl Responder, AppError> {
-    let sublog = state.log.new(o!(
-        "handler" => "create_item",
-        "list_id" => list_id.0,
-        "todo_item" => todo_item.title.clone()
-    ));
+    let title = todo_item.into_inner().title;
+    let sublog = state
+        .log
+        .new(o!("handler" => "create_item", "list_id" => list_id.0, "todo_item" => title.clone()));
 
-    let client: Client = get_client(state.pool.clone(), sublog.clone()).await?;
+    let client: Client = get_client(&state.pool, &sublog).await?;
 
-    let result = db::create_item(&client, list_id.0, todo_item.title.clone()).await;
+    let result = db::create_item(&client, list_id.0, &title).await;
 
     result
         .map(|item| HttpResponse::Ok().json(item))
@@ -105,7 +105,7 @@ pub async fn items(
         "list_id" => list_id.0
     ));
 
-    let client: Client = get_client(state.pool.clone(), sublog.clone()).await?;
+    let client: Client = get_client(&state.pool, &sublog).await?;
 
     let result = db::get_items(&client, list_id.0).await;
 
@@ -124,7 +124,7 @@ pub async fn get_item(
         "item_id" => params.1,
     ));
 
-    let client: Client = get_client(state.pool.clone(), sublog.clone()).await?;
+    let client: Client = get_client(&state.pool, &sublog).await?;
 
     let result = db::get_item(&client, params.0, params.1).await;
 
@@ -143,7 +143,7 @@ pub async fn check_todo(
         "item_id" => params.1,
     ));
 
-    let client: Client = get_client(state.pool.clone(), sublog.clone()).await?;
+    let client: Client = get_client(&state.pool, &sublog).await?;
 
     let result = db::check_todo(&client, params.0, params.1).await;
 

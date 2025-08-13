@@ -9,7 +9,7 @@ use slog::info;
 use tokio_postgres::NoTls;
 
 lazy_static! {
-    static ref APP_STATE: models::AppState = {
+    static ref APP_STATE: web::Data<models::AppState> = {
         dotenv().ok();
 
         let log = Config::configure_log();
@@ -23,18 +23,14 @@ lazy_static! {
             .create_pool(Some(deadpool_postgres::Runtime::Tokio1), NoTls)
             .unwrap();
 
-        models::AppState {
-            pool: pool.clone(),
-            log: log.clone(),
-        }
+        web::Data::new(models::AppState { pool, log })
     };
 }
 
 #[actix_rt::test]
 async fn test_get_todos() {
-    let app_state = web::Data::new(APP_STATE.clone());
     let app = App::new()
-        .app_data(app_state)
+        .app_data(APP_STATE.clone())
         .route("/todos{_:/?}", web::get().to(handlers::todos));
 
     let mut app = test::init_service(app).await;
@@ -55,9 +51,8 @@ async fn test_get_todos() {
 
 #[actix_rt::test]
 async fn test_create_todos() {
-    let app_state = web::Data::new(APP_STATE.clone());
     let app = App::new()
-        .app_data(app_state)
+        .app_data(APP_STATE.clone())
         .route("/todos{_:/?}", web::get().to(handlers::todos))
         .route("/todos{_:/?}", web::post().to(handlers::create_todo));
 

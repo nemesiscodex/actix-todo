@@ -33,12 +33,9 @@ async fn main() -> io::Result<()> {
         config.server.port
     );
 
-    HttpServer::new(move || {
-        let state = web::Data::new(AppState {
-            pool: pool.clone(),
-            log: log.clone(),
-        });
+    let state = web::Data::new(AppState { pool, log });
 
+    HttpServer::new(move || {
         App::new()
             .app_data(state.clone())
             .wrap(middleware::Logger::default())
